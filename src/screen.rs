@@ -1,4 +1,5 @@
 use anyhow::Result;
+use clipboard_rs::Clipboard;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
     execute,
@@ -28,7 +29,7 @@ enum InputEvent {
 struct App {
     last: usize,
     text: Vec<liz::write::Text>,
-    notifications: String,
+    notifications: Vec<String>,
     running: bool,
     loader: usize,
     hearer: liz::hear::Hearer,
@@ -40,7 +41,7 @@ impl App {
         Ok(App {
             last: 0,
             text: Vec::new(),
-            notifications: String::new(),
+            notifications: Vec::new(),
             running: false,
             loader: 0,
             hearer: liz::hear::Hearer::new()?,
@@ -62,8 +63,7 @@ impl App {
     }
 
     fn add_notification(&mut self, notification: &str) {
-        self.notifications.push_str(notification);
-        self.notifications.push('\n');
+        self.notifications.push(notification.to_string());
     }
 
     fn copy_to_clipboard(&mut self) -> Result<()> {
@@ -74,9 +74,9 @@ impl App {
             .collect::<Vec<String>>()
             .join(" ");
 
-        let mut clipboard = arboard::Clipboard::new()?;
-
-        clipboard.set_text(text)?;
+        clipboard_rs::ClipboardContext::new()
+            .and_then(|ctx| ctx.set_text(text))
+            .map_err(|_| anyhow::anyhow!("Failed while getting context"))?;
 
         Ok(())
     }
@@ -181,7 +181,7 @@ fn main() -> Result<()> {
                 Paragraph::new(text).block(Block::default().borders(Borders::ALL).title("Text"));
             f.render_widget(text, chunks[0]);
 
-            let notifications = Paragraph::new(app.notifications.as_str()).block(
+            let notifications = Paragraph::new(app.notifications.join("\n")).block(
                 Block::default()
                     .borders(Borders::ALL)
                     .title("Notifications"),

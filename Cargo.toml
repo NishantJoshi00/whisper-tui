@@ -10,8 +10,7 @@ whisper-rs = "0.11.1"
 time = "0.3.36"
 ratatui = "0.28.1"
 crossterm = "0.28.1"
-
-arboard = "3.4.1"
+clipboard-rs = "0.2.1"
 
 [[bin]]
 name = "liz"
