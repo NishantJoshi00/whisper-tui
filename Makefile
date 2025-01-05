@@ -10,6 +10,6 @@ build: target/release/liz models/ggml-base.en.bin
 target/release/liz: src
 	cargo build --release
 
-./models/ggml-base.en.bin:
-	download-models.sh base.en
+models/ggml-base.en.bin:
+	./download-models.sh base.en
 

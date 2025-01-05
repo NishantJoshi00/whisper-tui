@@ -23,6 +23,7 @@ enum InputEvent {
     Toggle,
     Copy,
     Quit,
+    Clear,
     Tick,
 }
 
@@ -64,6 +65,13 @@ impl App {
 
     fn add_notification(&mut self, notification: &str) {
         self.notifications.push(notification.to_string());
+    }
+
+    fn clear_text(&mut self) -> Result<()> {
+        self.text.clear();
+        self.last = 0;
+
+        Ok(())
     }
 
     fn copy_to_clipboard(&mut self) -> Result<()> {
@@ -125,8 +133,8 @@ fn main() -> Result<()> {
                         (KeyCode::Char('q'), _) | (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
                             tx.send(InputEvent::Quit).unwrap()
                         }
+                        (KeyCode::Char('r'), _) => tx.send(InputEvent::Clear).unwrap(),
                         (KeyCode::Char('c'), _) => tx.send(InputEvent::Copy).unwrap(),
-
                         _ => {}
                     }
                 }
@@ -207,6 +215,11 @@ fn main() -> Result<()> {
                     "Quit <q>",
                     Style::default().add_modifier(Modifier::BOLD),
                 ),
+                ratatui::text::Span::raw(" | "),
+                ratatui::text::Span::styled(
+                    "Clear <r>",
+                    Style::default().add_modifier(Modifier::BOLD),
+                ),
             ]);
             let controls = Paragraph::new(controls).alignment(ratatui::layout::Alignment::Center);
             f.render_widget(controls, chunks[2]);
@@ -238,6 +251,13 @@ fn main() -> Result<()> {
             }
             InputEvent::Tick => {
                 app.update_loader();
+            }
+            InputEvent::Clear => {
+                if !app.running {
+                    app.clear_text()?;
+                    app.add_notification("Text cleared");
+                    app.hearer.reset()?;
+                }
             }
         }
     }

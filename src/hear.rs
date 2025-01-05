@@ -81,6 +81,14 @@ impl Hearer {
             State::Stopped => anyhow::bail!("Stream is already stopped"),
         }
     }
+
+    pub fn reset(&mut self) -> Result<()> {
+        self.stream.pause()?;
+        self.state = State::Stopped;
+        self.buffer.lock().unwrap().clear();
+
+        Ok(())
+    }
 }
 
 fn write_input_data(input: &[f32], channel: Buffer) {
